@@ -37,11 +37,11 @@ namespace HahnCargoTruckLoader.Logic
 
                 // 3D boolean array to track busy space in the truck
                 bool[,,] truckSpace = new bool[_truck.Width, _truck.Height, _truck.Length];
-                int stepNumber = 1;
+                int step = 1;
 
                 foreach (var crate in sortedCrates)
                 {
-                    if (!PlaceCrateInTruck(crate, truckSpace, ref stepNumber))
+                    if (!PlaceCrateInTruck(crate, truckSpace, ref step))
                     {
                         throw new CratePlacementException(crate.CrateID, $"Failed to place crate {crate.CrateID}");
                     }
@@ -59,7 +59,7 @@ namespace HahnCargoTruckLoader.Logic
             return instructions;
         }
 
-        private bool PlaceCrateInTruck(Crate crate, bool[,,] cargoSpace, ref int stepNumber)
+        private bool PlaceCrateInTruck(Crate crate, bool[,,] cargoSpace, ref int step)
         {
             foreach (var (width, height, length) in GetPossibleCrateRotations(crate))
             {
@@ -72,7 +72,7 @@ namespace HahnCargoTruckLoader.Logic
                             if (CanPlace(cargoSpace, x, y, z, width, height, length))
                             {
                                 PlaceCrate(cargoSpace, x, y, z, width, height, length);
-                                CreateAndStoreInstruction(crate, x, y, z, width, height, length, ref stepNumber);
+                                CreateAndStoreInstruction(crate, x, y, z, width, height, length, ref step);
                                 return true;
                             }
                         }
@@ -170,6 +170,7 @@ namespace HahnCargoTruckLoader.Logic
             };
 
             instructions[crate.CrateID] = instruction;
+            //PrintInstruction(instruction);
         }
 
         private IEnumerable<(int, int, int)> GetPossibleCrateRotations(Crate crate)
@@ -180,6 +181,14 @@ namespace HahnCargoTruckLoader.Logic
                 (crate.Length, crate.Height, crate.Width),
                 (crate.Width, crate.Length, crate.Height)
             };
+        }
+
+        private void PrintInstruction(LoadingInstruction instruction)
+        {
+            Console.WriteLine($"Step {instruction.LoadingStepNumber}: " +
+                              $"Crate {instruction.CrateId} at ({instruction.TopLeftX}, {instruction.TopLeftY}) " +
+                              $"{(instruction.TurnHorizontal ? "turned horizontally" : "")} " +
+                              $"{(instruction.TurnVertical ? "turned vertically" : "")}");
         }
 
     }
@@ -194,4 +203,5 @@ namespace HahnCargoTruckLoader.Logic
             CrateId = crateId;
         }
     }
+
 }
